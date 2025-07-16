@@ -1,0 +1,296 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Genre {
+  ACTION
+  ADVENTURE
+  DRAMA
+  COMEDY
+  FANTASY
+  HORROR
+  MYSTERY
+  ROMANCE
+  SCI_FI
+  THRILLER
+  DOCUMENTARY
+  ANIMATION
+  CRIME
+}
+
+enum MediaType {
+  MOVIE
+  SERIES
+  SEASON
+  EPISODE
+}
+
+enum Job {
+  ACTOR
+  DIRECTOR
+  WRITER
+  PRODUCER
+  MUSIC
+}
+
+model Clip {
+  id           String     @id @default(uuid())
+  type         MediaType
+  clipLink     String
+  title        String
+  duration     Int
+  date         DateTime   @default(now())
+
+  movieId      String? 
+  movie        Movie?     @relation("MovieClips", fields: [movieId], references: [id])
+
+  seriesId     String?
+  series       Series?    @relation("SeriesClips", fields: [seriesId], references: [id])
+
+  seasonId     String?
+  season       Season?    @relation("SeasonClips", fields: [seasonId], references: [id])
+
+  @@index([movieId])
+  @@index([seriesId])
+  @@index([seasonId])
+}
+
+model Review {
+  id           String     @id @default(uuid())
+  type         MediaType
+  referenceId  String
+  author       Profile    @relation(fields: [authorId], references: [id])
+  authorId     String
+  reviewDate   DateTime   @default(now())
+  reviewText   String
+  reviewStars  Float
+
+  movie        Movie?     @relation("MovieReviews", fields: [referenceId], references: [id], map: "fk_review_movie")
+  series       Series?    @relation("SeriesReviews", fields: [referenceId], references: [id], map: "fk_review_series")
+  season       Season?    @relation("SeasonReviews", fields: [referenceId], references: [id], map: "fk_review_season")
+
+  @@index([referenceId, type])
+}
+
+model Movie {
+  id           String     @id @default(uuid())
+  title        String
+  description  String
+  releaseDate  DateTime
+  genres       Genre[]
+  rating       Float
+  vPoster      String
+  hPoster      String
+  trailerLink  String
+  movieLink    String
+  tags         String[]
+  duration     Int
+  createdAt    DateTime   @default(now())
+
+  cast         MovieCast[]
+  crew         MovieCrew[]
+  reviews      Review[]   @relation("MovieReviews")
+  clips        Clip[]     @relation("MovieClips")
+  watchedBy    WatchedMedia[] @relation("MovieWatched")
+  incompleteBy IncompleteMedia[] @relation("MovieIncomplete")
+  wishlist     Wishlist[] @relation("MovieWishlist")
+}
+
+model Series {
+  id             String     @id @default(uuid())
+  title          String
+  description    String
+  genres         Genre[]
+  rating         Float
+  vPoster        String
+  hPoster        String
+  trailerLink    String
+  tags           String[]
+  numberOfSeasons Int
+  createdAt      DateTime   @default(now())
+
+  cast           SeriesCast[]
+  crew           SeriesCrew[]
+  reviews        Review[]   @relation("SeriesReviews")
+  clips          Clip[]     @relation("SeriesClips")
+  seasons        Season[]
+  wishlist       Wishlist[] @relation("SeriesWishlist")
+}
+
+model Season {
+  id             String     @id @default(uuid())
+  title          String
+  seasonNumber   Int
+  releaseDate    DateTime
+  description    String
+  rating         Float
+  vPoster        String
+  hPoster        String
+  trailerLink    String
+  noOfEpisodes   Int
+  createdAt      DateTime   @default(now())
+
+  series         Series     @relation(fields: [seriesId], references: [id])
+  seriesId       String
+
+  cast           SeasonCast[]
+  crew           SeasonCrew[]
+  reviews        Review[]   @relation("SeasonReviews")
+  clips          Clip[]     @relation("SeasonClips")
+  episodes       Episode[]
+  watchedBy      WatchedMedia[] @relation("SeasonWatched")
+}
+
+model Episode {
+  id             String     @id @default(uuid())
+  title          String
+  episodeNumber  Int
+  description    String
+  image          String
+  episodeLink    String
+  duration       Int
+  createdAt      DateTime   @default(now())
+
+  season         Season     @relation(fields: [seasonId], references: [id])
+  seasonId       String
+
+  incompleteBy   IncompleteMedia[] @relation("EpisodeIncomplete")
+}
+
+model CastCrew {
+  id            String     @id @default(uuid())
+  name          String
+  job           Job[]
+  description   String
+  dob           DateTime?
+  deathDate     DateTime?
+  imageUrls     String[]
+  profilePhoto  String?
+
+  movieCast     MovieCast[]
+  movieCrew     MovieCrew[]
+  seriesCast    SeriesCast[]
+  seriesCrew    SeriesCrew[]
+  seasonCast    SeasonCast[]
+  seasonCrew    SeasonCrew[]
+}
+
+model MovieCast {
+  id             String     @id @default(uuid())
+  characterName  String
+  movie          Movie      @relation(fields: [movieId], references: [id])
+  movieId        String
+  cast           CastCrew   @relation(fields: [castId], references: [id])
+  castId         String
+}
+
+model MovieCrew {
+  id             String     @id @default(uuid())
+  jobTitle       String
+  movie          Movie      @relation(fields: [movieId], references: [id])
+  movieId        String
+  crew           CastCrew   @relation(fields: [crewId], references: [id])
+  crewId         String
+}
+
+model SeriesCast {
+  id             String     @id @default(uuid())
+  characterName  String
+  series         Series     @relation(fields: [seriesId], references: [id])
+  seriesId       String
+  cast           CastCrew   @relation(fields: [castId], references: [id])
+  castId         String
+}
+
+model SeriesCrew {
+  id             String     @id @default(uuid())
+  jobTitle       String
+  series         Series     @relation(fields: [seriesId], references: [id])
+  seriesId       String
+  crew           CastCrew   @relation(fields: [crewId], references: [id])
+  crewId         String
+}
+
+model SeasonCast {
+  id             String     @id @default(uuid())
+  characterName  String
+  season         Season     @relation(fields: [seasonId], references: [id])
+  seasonId       String
+  cast           CastCrew   @relation(fields: [castId], references: [id])
+  castId         String
+}
+
+model SeasonCrew {
+  id             String     @id @default(uuid())
+  jobTitle       String
+  season         Season     @relation(fields: [seasonId], references: [id])
+  seasonId       String
+  crew           CastCrew   @relation(fields: [crewId], references: [id])
+  crewId         String
+}
+
+model Profile {
+  id               String     @id @default(uuid())
+  name             String
+  username         String     @unique
+  createdAt        DateTime   @default(now())
+  preferences      String[]
+  email            String     @unique
+  password         String
+  profileAvatar    String?
+
+  watchedMedia     WatchedMedia[]
+  incompleteMedia  IncompleteMedia[]
+  wishlist         Wishlist[]
+  reviews          Review[]
+}
+
+model WatchedMedia {
+  id          String     @id @default(uuid())
+  type        MediaType
+  referenceId String
+  user        Profile    @relation(fields: [userId], references: [id])
+  userId      String
+
+  movie       Movie?     @relation("MovieWatched", fields: [referenceId], references: [id], map: "fk_watched_movie")
+  season      Season?    @relation("SeasonWatched", fields: [referenceId], references: [id], map: "fk_watched_season")
+
+  @@index([referenceId, type])
+}
+
+
+model IncompleteMedia {
+  id          String     @id @default(uuid())
+  type        MediaType
+  referenceId String
+  progress    Int
+  user        Profile    @relation(fields: [userId], references: [id])
+  userId      String
+
+  movie       Movie?     @relation("MovieIncomplete", fields: [referenceId], references: [id], map: "fk_incomplete_movie")
+  episode     Episode?   @relation("EpisodeIncomplete", fields: [referenceId], references: [id], map: "fk_incomplete_episode")
+
+  @@index([referenceId, type])
+}
+
+
+model Wishlist {
+  id          String     @id @default(uuid())
+  type        MediaType
+  referenceId String
+  user        Profile    @relation(fields: [userId], references: [id])
+  userId      String
+
+  movie       Movie?     @relation("MovieWishlist", fields: [referenceId], references: [id], map: "fk_wishlist_movie")
+  series      Series?    @relation("SeriesWishlist", fields: [referenceId], references: [id], map: "fk_wishlist_series")
+
+  @@index([referenceId, type])
+}
+
+

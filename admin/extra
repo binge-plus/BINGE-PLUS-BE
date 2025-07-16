@@ -1,0 +1,7 @@
+📁 js/
+├── main.js            ← Entry point, app initialization
+├── api.js             ← All API functions (fetch, post, uploadImage, etc.)
+├── dom.js             ← DOM handlers: alerts, loading, resetForm, image preview
+├── dynamic.js         ← Dynamic cast/crew/clip section handlers
+├── modal.js           ← Modal logic for cast/crew
+├── submit.js          ← Final form submission + validation
