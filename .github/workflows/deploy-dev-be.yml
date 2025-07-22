@@ -2,13 +2,17 @@ name: Deploy Dev-Backend for BingePlus
 
 on:
   pull_request:
-    types:
-      - closed
     branches:
       - develop
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed  # merged PRs are 'closed' with `merged == true`
 
 jobs:
   deploy:
+    if: github.event.pull_request.merged == true || github.event.action != 'closed'
     runs-on: ubuntu-latest
 
     steps:
@@ -52,6 +56,7 @@ jobs:
         run: rm -f .env
 
   start_server:
+    if: github.event.pull_request.merged == true || github.event.action != 'closed'
     runs-on: ubuntu-latest
     needs: deploy
 
