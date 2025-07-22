@@ -1,0 +1,75 @@
+name: Deploy Prod-Backend for BingePlus
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Create Dir bingeplus-be
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USERNAME }}
+          key: ${{ secrets.GCP_VM_PRIVATE_KEY }}
+          script: |
+            sudo mkdir -p /var/www/html/bingeplus-be
+            sudo chown -R binge+:binge+ /var/www/html/bingeplus-be
+
+      - name: Copy files to GCP VM
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USERNAME }}
+          key: ${{ secrets.GCP_VM_PRIVATE_KEY }}
+          source: "."
+          target: "/var/www/html/bingeplus-be"  # Target directory on GCP VM
+
+      - name: Create .env file from Secrets
+        shell: bash
+        run: |
+          echo "${{ secrets.PROD_ENV }}" > .env
+
+      - name: Copy env file to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USERNAME }}
+          key: ${{ secrets.GCP_VM_PRIVATE_KEY }}
+          source: ".env"
+          target: "/var/www/html/bingeplus-be/server"
+
+      - name: Remove local .env file
+        run: rm -f .env
+
+  start_server:
+    runs-on: ubuntu-latest
+    needs: deploy  # Ensures this job runs after the 'deploy' job
+
+    steps:
+      - name: Start Server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USERNAME }}
+          key: ${{ secrets.GCP_VM_PRIVATE_KEY }}
+          script: |
+            cd /var/www/html/bingeplus-be/server
+            npm install
+            nohup npm start > out.log 2>&1 &
+
+      - name: Restart Apache2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USERNAME }}
+          key: ${{ secrets.GCP_VM_PRIVATE_KEY }}
+          script: |
+            sudo systemctl restart apache2

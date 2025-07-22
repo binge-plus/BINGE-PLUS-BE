@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "CastCrew" ALTER COLUMN "dob" DROP NOT NULL,
+ALTER COLUMN "profilePhoto" DROP NOT NULL;
