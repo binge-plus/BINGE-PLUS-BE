@@ -2,6 +2,8 @@ name: Deploy Dev-Backend for BingePlus
 
 on:
   pull_request:
+    types:
+      - closed
     branches:
       - develop
 
