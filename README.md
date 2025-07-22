@@ -1,4 +1,4 @@
-# Binge - Modern OTT Platform
+# Binge - Modern OTT Platform 
 
 A feature-rich Over-The-Top (OTT) streaming platform built with modern technologies.
 
