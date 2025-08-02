@@ -167,3 +167,6 @@ MIT License. See [LICENSE](../LICENSE) for details.
 - [Prisma Docs](https://www.prisma.io/docs/)
 - [Supabase Docs](https://supabase.com/docs)
 - [Express Docs](https://expressjs.com/) 
+
+## TODO
+1. CHANGE WORKFLOW ON EVENT FOR DEVELOP NEXT TIME
