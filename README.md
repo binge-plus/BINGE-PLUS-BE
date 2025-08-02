@@ -1,4 +1,4 @@
-# Binge+ Backend (server)
+# Binge+ Backend (server) 
 
 A robust Node.js/Express backend for the Binge+ OTT platform, providing RESTful APIs, business logic, and database management for movies, series, seasons, episodes, user profiles, reviews, and more. Built with TypeScript, Prisma ORM, and Supabase for storage and authentication.
 
