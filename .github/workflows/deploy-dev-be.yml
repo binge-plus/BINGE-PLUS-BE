@@ -1,7 +1,7 @@
 name: Deploy Dev-Backend for BingePlus
 
 on:
-  pull_request:
+  push:
     branches:
       - develop
   workflow_dispatch:
